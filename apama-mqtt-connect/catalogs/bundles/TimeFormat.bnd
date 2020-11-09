@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="Time Format" type="monitorscript"  singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2015-06-04</date>
+		<author>Software AG</author>
+		<comments>Required to access all the methods of the Time Format plug-in. </comments>
+	</version>
+	<description>
+		Required to access all the methods of the Time Format plug-in
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="TimeFormatEvents.mon"/>
+		</fileset>
+	</monitors>
+	<events/>
+	<dependencies/>
+</bundle>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="Scenario Service Throttling Support" type="monitorscript" singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2009-13-07</date>
+		<author>Software AG</author>
+		<comments>Required to enable throttling support for Apama Scenario-based applications, built using Event Modeler. </comments>
+	</version>
+	<description>
+		Enables throttling support for scenario-based applications
+	</description>
+	<monitors/>
+	<events>
+		<file name="${APAMA_HOME}/monitors/scenario_support/ScenarioServiceThrottlingPeriod.evt"/>
+	</events>	
+	<dependencies>
+		<dependency bundle-filename="ScenarioService.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+	</dependencies>
+</bundle>
+

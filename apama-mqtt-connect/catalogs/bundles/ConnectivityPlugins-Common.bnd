@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="Connectivity Plug-ins application support" display-name="Connectivity Plug-ins Application Support" type="monitorscript" singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2016-01-06</date>
+		<author>Software AG</author>
+		<comments/>
+	</version>
+	<description>
+		Support for controlling connectivity plug-ins from EPL
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="ConnectivityPluginsControl.mon"/>
+			<include name="ConnectivityPlugins.mon"/>
+		</fileset>
+	</monitors>
+</bundle>
+

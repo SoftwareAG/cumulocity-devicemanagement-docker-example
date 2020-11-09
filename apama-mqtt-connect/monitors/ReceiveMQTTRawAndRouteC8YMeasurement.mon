@@ -1,0 +1,191 @@
+/*
+	This file contains some sample event definitions and a simple test application 
+	for quickly testing and getting started with sending and receiving events to/from 
+	a connectivity transport plug-in. 
+
+	Copyright (c) 2018 Software AG, Darmstadt, Germany and/or its licensors
+
+	Licensed under the Apache License, Version 2.0 (the "License"); you may not use this 
+	file except in compliance with the License. You may obtain a copy of the License at
+	http://www.apache.org/licenses/LICENSE-2.0
+	Unless required by applicable law or agreed to in writing, software distributed under the
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
+	either express or implied. 
+	See the License for the specific language governing permissions and limitations under the License.
+
+*/
+
+package com.softwareag.thinedge;
+
+using com.softwareag.connectivity.ConnectivityPlugins;
+using com.softwareag.connectivity.ExtraFieldsDict;
+
+using com.apama.cumulocity.Measurement;
+using com.apama.cumulocity.MeasurementValue;
+
+using com.apama.correlator.timeformat.TimeFormat;
+
+/** Sample event for messages received from an external transport.
+
+	In a real application this would be replaced with one or more domain/application-specific event definitions.
+
+	Any incoming top-level payload fields that are not explicitly mapped will go into the extraFields dictionary. 
+*/
+@ExtraFieldsDict("extraFields")
+event MQTT_Raw
+{
+	float value;
+	string sourceTopic;
+	dictionary<string,any> extraFields;
+}
+
+/** Sample event for messages that can be sent to an external transport.
+	For round-trip testing, this event type may also be used for incoming events. 
+
+	In a real application this would be replaced with one or more domain/application-specific event definitions.
+
+	Additional top-level payload fields can be set in the outgoing messages by including them in the extraFields dictionary. 
+*/
+//@ExtraFieldsDict("extraFields")
+//event MySampleOutput
+//{
+//	string message;
+//	string myParameter;
+//	dictionary<string,any> extraFields;
+//}
+
+/** Control event that can be sent to change the channels used by 
+	this sample to match those for a specific connectivity plug-in. 
+	
+	The input and output channels may be the same or different.  
+	
+	This event is additive if sent more than once. 
+*/
+event ConfigureMQTTTopic
+{
+	/** An input channel to subscribe to. */
+	string inputChannel;
+	/** A channel to send a MySampleOutput event to at startup, or "" for none. */
+	string outputChannel;
+	
+	/** If true, a sample output event will be sent every 5 seconds which can be useful 
+	for some interactive testing scenarios. If false, a single output event will be 
+	sent once the application is initialized, which is a better approach for transports 
+	that hold messages in a queue (to avoid a large build-up of messages from 
+	previous sessions). If no ConfigureSample event is sent, the default is false. */
+//	boolean keepSending;
+}
+
+/** Control event that can be sent externally (for example from engine_send) 
+	to the default channel ("") to request that an event be "sent" on to 
+	the specified transport channel. 
+	*/
+//event SendThis
+//{
+//	string channel;
+//	any eventToSend;
+//}
+
+///** Event that will be send out to notify listeners of new topics. 
+//*/
+//event Signaltype
+//{
+//	string topic;
+//}
+
+/** This monitor implements a simple application that logs all events received on a specific transport channel(s), 
+	and also sends an output event on a specific transport channel (once the AppReady event is received).
+
+	This monitor is useful for testing, diagnostics, and getting started with a new connectivity plug-in.   
+*/
+monitor ReceiveMQTTRawAndRouteC8YMeasurement 
+{
+	// TODO - edit these default channel names if necessary to match your transport's YAML configuration
+	// For example both input and output could be set to "um:MyChannelName" if using Universal Messaging
+	ConfigureMQTTTopic config := ConfigureMQTTTopic(
+		"mqtt:raw/#",  // input channel
+		"mqtt:aggregated/#" // output channel --> todo output number same as input number
+//		false // keep sending output events every few seconds
+		); 
+	
+	sequence<string> signaltypeCache := [];
+	
+	action onload() 
+	{
+		// Just like a real application, wait for an AppReady event before 
+		// subscribing to any channels (this prevents any messages being received 
+		// while parts of the application are not yet injected or fully ready 
+		// to handle them). 
+		on AppReady() {
+			log "\n--- Sample EPL application is now ready to start" at INFO;
+			com.softwareag.connectivity.ConnectivityPlugins.onApplicationInitialized();
+			
+			spawn startMQTTTopicListener(config) to context("mqttContext", false);
+
+		}
+		
+		// Support dynamic configuration of channels from a .evt file if desired
+		on ConfigureMQTTTopic(): config {
+			// First ConfigureSample replaces the defaults, later ones are in addition
+			on AppReady() and all (ConfigureMQTTTopic() as newMQTTconfig ) { 
+				spawn startMQTTTopicListener(newMQTTconfig) to context("mqttContext", false); 
+			}
+		}
+	}
+	
+	action startMQTTTopicListener(ConfigureMQTTTopic config)
+	{
+			log "\n--- SendReceiveSampleMonitor is using input channel '"+config.inputChannel+"' and output channel '"+config.outputChannel+"'" at INFO;
+			monitor.subscribe(config.inputChannel);
+			monitor.subscribe("c8y_ThinEdge");
+			// Log incoming events, typically MySampleInput and also (for round-trip testing) MySampleOutput events
+			on all any() as received {
+				
+				switch (received){
+					case MQTT_Raw: { 
+						log "\n--- Received message from channel '"+config.inputChannel+"':\n" + 
+						received.toString() at INFO;
+						routeC8yMeasurement(received);
+						checkNewSignalType(received.sourceTopic);
+					}
+					case Measurement: { 
+						log "\n--- Received message from channel '" + received.type + "':\n" + 
+						received.toString() at INFO;
+					}
+					default: {log "Unknown message type. " at WARN;}
+				}
+			}
+			
+	}
+	
+	action checkNewSignalType(string topic){
+		if signaltypeCache.indexOf(topic) < 0{
+			
+			c8y_RawMeasurement signal := new c8y_RawMeasurement;
+		    
+			signal.type := "c8y_ThinEdge";
+			signal.time := TimeFormat.formatWithTimeZone(currentTime,"YYYY-MM-dd'T'HH:mm:ss.SSSZ","Europe/Berlin");
+			signal.raw := {topic.replace("raw/","") : new MeasurementValue};
+		    
+			print signal.toString();
+			send signal to "mqtt:signaltype/" + topic;
+			
+//			send Signaltype(topic) to "mqtt:signaltype/" + topic;
+			signaltypeCache.append(topic);
+		}
+	}
+	action routeC8yMeasurement(MQTT_Raw raw){
+		log "\n--- Route c8y_ThinEdge measurement..." at INFO;
+		Measurement c8y_raw := new Measurement;
+		c8y_raw.time := currentTime;
+		c8y_raw.type := "c8y_ThinEdge";
+		
+		c8y_raw.measurements := {"raw":
+									{raw.sourceTopic.replace("raw/","") : MeasurementValue(raw.value,"",new dictionary<string,any>)	}
+								};
+		print c8y_raw.toString();
+		send c8y_raw to c8y_raw.type;
+		
+	}
+	
+}

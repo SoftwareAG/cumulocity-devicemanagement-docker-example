@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="Automatic onApplicationInitialized" type="monitorscript"  singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2018-02-20</date>
+		<author>Software AG</author>
+		<comments>Bundle to call onApplicationInitialized to start receiving events from connectivity plug-ins automatically</comments>
+	</version>
+	<description>
+		Immediately start receiving from connectivity plug-ins and JMS
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="AutomaticOnApplicationInitialized.mon"/>
+		</fileset>
+	</monitors>
+	<events>
+		<file name="${APAMA_HOME}/monitors/AutomaticOnApplicationInitialized.evt"/>
+	</events>
+	<dependencies>
+		<dependency bundle-filename="ConnectivityPlugins-Common.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+	</dependencies>
+</bundle>

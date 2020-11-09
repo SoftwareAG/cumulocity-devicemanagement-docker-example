@@ -1,0 +1,29 @@
+version: "3.0"
+services:
+  apama:
+    build: ./apama-mqtt-connect
+    hostname: apama
+    container_name: apama
+    volumes:
+      - ./apama-mqtt-connect/monitors:/apama_work/Project_deployed/monitors
+      - ./apama-mqtt-connect/events:/apama_work/Project_deployed/events
+    expose:
+      - "15903"
+    ports:
+      - "15903:15903"
+    restart: always
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    hostname: mosquitto
+    container_name: mosquitto
+    volumes:
+     - ./mosquitto/monitors:/apama_work/Project_deployed/monitors
+    expose:
+      - "1883"
+      - "9001"
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    networks:
+      - default
+    restart: always

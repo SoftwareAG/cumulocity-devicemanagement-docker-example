@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="DataView Service" type="monitorscript" singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2008-23-04</date>
+		<author>Software AG</author>
+		<comments>
+			Enables Apama applications to expose data to Apama Dashboard Studio and custom ScenarioService clients, using the read-only DataView interface.
+		</comments>
+	</version>
+	<description>
+		EPL support for exposing read-only data to dashboards
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="DataViewService_Interface.mon"/>
+			<include name="DataViewService_Impl_Dict.mon"/>
+		</fileset>
+	</monitors>
+	<dependencies>
+		<dependency bundle-filename="ScenarioService.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+	</dependencies>
+</bundle>
+

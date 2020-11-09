@@ -1,0 +1,15 @@
+// TODO: Enter Apama events for sending here (one event per line). 
+// These should be based on event definitions in an EPL (.mon) file. 
+
+// For example, using this event definition (which would be added to a .mon file):
+// event Measurement {
+//    string deviceId;
+//    dictionary<string, any> dict;
+//    optional<float> timestamp;
+// }
+// ... the following events could be used in an event (.evt) file:
+// Measurement("Carrera_1",{"Temperature":any(Temperature,Temperature("Celsius",23))},optional(1495619586.1))
+// Measurement("Carrera_2",{"Speed":any(Speed,Speed("mph",20)),"Temperature":any(Temperature,Temperature("Celsius",23))},optional())
+//ConfigureSample("input","output",true)
+//ConfigureSample("input2","output2",true)
+//ConfigureSample("input3","output3",true)

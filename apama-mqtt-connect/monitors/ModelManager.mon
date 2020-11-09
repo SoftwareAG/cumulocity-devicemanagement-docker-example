@@ -1,0 +1,294 @@
+using com.apama.json.JSONPlugin;
+using com.apama.exceptions.Exception;
+using com.apama.scenario.Create;
+using com.apama.scenario.Created;
+using com.apama.scenario.Delete;
+using com.apama.scenario.Deleted;
+using com.apama.scenario.Update;
+using com.apama.memorystore.Storage;
+using com.apama.memorystore.Schema;
+using com.apama.memorystore.Store;
+using com.apama.memorystore.Finished;
+using com.apama.memorystore.Table;
+using com.apama.memorystore.Row;
+using com.apama.memorystore.Iterator;
+
+
+event ModelCommand
+{
+    string requestId; 
+    string channel; //subscribe and send HTTPRespond to channel "modelCommands"
+    string method; //POST, GET, PUT, DELETE
+    string path; // /service/cep/analyticsbuilder/{{id}}
+    any data; //JSON model
+}
+
+event HTTPResponse
+{
+    string requestId;
+    integer status;
+    any data;
+}
+
+monitor ModelManager
+{
+	constant string SCENARIO_ID := "analytics_factory";
+	constant string MEMORY_STORE_NAME := "modelBaseMemoryStore";
+	constant string MEMORY_STORE_FILENAME := "models.dat";
+	constant string MODELS_TABLE_NAME := "t_models";
+
+	dictionary<string, integer> activeModels; // maps from model ID to scenario Instance ID
+	dictionary<integer, string> scenarioInstances; // maps from scenario Instance ID to model ID
+
+	Storage storage;
+	Store store;
+	Table models;
+
+	event TableOpenComplete {}
+
+	action onload()
+	{
+		integer storageid := storage.prepareOrCreate(MEMORY_STORE_NAME, MEMORY_STORE_FILENAME);
+		on Finished(id=storageid) as f
+		{
+			if not f.success
+			{
+				log "Store creation failed: "+f.status at ERROR; 
+				die;
+			}
+			store := storage.open(MEMORY_STORE_NAME);
+			Schema schema := new com.apama.memorystore.Schema;
+			schema.fields := ["key", "value"];
+			schema.types := ["string", "string"];
+			integer i := store.prepare(MODELS_TABLE_NAME, schema);
+			on Finished(id=i) as f
+			{
+				models := store.open(MODELS_TABLE_NAME);
+				route TableOpenComplete();
+				manageModels();
+			}
+		}
+		on com.apama.connectivity.ApplicationInitialized() and TableOpenComplete() {
+			activateModels();
+		}
+	}
+
+	action setModelState(string path, any data, string newState, string requestId, string channel)
+	{
+		integer messageId := integer.getUnique();
+		if newState = "ACTIVE" {
+			sequence<string> params := buildParams(data);
+			log "Creating with "+ params.toString() at DEBUG;
+			Create c := Create(SCENARIO_ID, messageId, "owner", params);
+			route c;
+			on Created(messageId = messageId) as ctd {
+				log ctd.toString() at DEBUG;
+				activeModels[path] := ctd.scenarioInstanceId;
+				scenarioInstances[ctd.scenarioInstanceId] := path;
+				data := instanceUpdated(ctd.scenarioInstanceId, ctd.outputFieldValues, ctd);
+				if 0 != channel.length() {
+					send HTTPResponse(requestId, 201, data) to channel;
+				}
+			}
+		} 
+		else { // assume inactive, i.e. delete:
+			if activeModels.hasKey(path) {
+				route Delete(SCENARIO_ID, messageId, activeModels[path]);
+				on Deleted(messageId = messageId) {
+					activeModels.remove(path);
+				}
+				if 0 != channel.length() {
+					send HTTPResponse(requestId, 201, data) to channel;
+				}
+
+			} 
+			else {
+				if 0 != channel.length() {
+					send HTTPResponse(requestId, 201, data) to channel;
+				}
+			}
+		}
+
+	}
+
+
+	action activateModels()
+	{
+		// activate models at startup
+		Iterator itr := models.begin();
+		while not itr.done() {
+			Row model := itr.getRow();
+			if not model.getKey() = "counter" {
+				string val := model.getString("value");
+				dictionary<any,any> data := dictionary<any,any>.parse(val);
+				string state := data["state"].valueToString();
+				setModelState(model.getKey(), data, state, "", "");
+			}
+			itr.step();
+		}
+	}
+
+	action manageModels()
+	{
+		on all Update(scenarioId = SCENARIO_ID) as upd {
+			log upd.toString();
+			dictionary<any, any> data := instanceUpdated(upd.scenarioInstanceId, upd.outputFieldValues, upd);
+		}
+
+		monitor.subscribe("modelCommands");
+
+		on all ModelCommand() as mc {
+			log "\n*****\nModel Manager works!!!!\n*****" at INFO;
+		}
+		// Create a new model
+		on all ModelCommand(method="POST") as mc {
+			log mc.toString();
+			Row ctr := models.get("counter");
+			integer id := 1;
+			try {
+				id := integer.parse(ctr.getString("value"));
+			} catch (Exception e) {} // this will happen the first time
+			ctr.set("value", (id+1).toString());
+			ctr.commit();
+			dictionary<any, any> data := <dictionary<any, any> > mc.data;
+			data["id"] := id.toString();
+			//add the data as a new row in the database table
+			Row model := models.add(mc.path+"/"+id.toString());
+			model.set("value", data.toString());
+			model.commit();
+			integer dummy := store.persist();
+			send HTTPResponse(mc.requestId, 201, data) to mc.channel;
+		}	
+
+		// Retrieve a model
+		on all ModelCommand(method="GET") as mc {
+			log mc.toString();
+			if mc.path = "/service/cep/analyticsbuilder" {
+				dictionary<string, any> response := new dictionary<string, any>;
+				//populate the dictionary of models from the database table
+				sequence<any> values := [];
+				Iterator itr := models.begin();
+				while not itr.done(){
+					Row model := itr.getRow();
+					if not model.getKey() = "counter" {
+						string val := model.getString("value");
+						dictionary<any,any> data := dictionary<any,any>.parse(val);
+						values.append(data);
+					}
+					itr.step();
+				}
+				
+				response["analyticsBuilderModelRepresentations"] := values;
+				response["attrs"] := new dictionary<string, any>;
+				send HTTPResponse(mc.requestId, 200, response) to mc.channel;
+			} 
+			else {
+				try {
+					//read the row from the database, using the key
+					Row model := models.get(mc.path);
+					//assign the string value from the row to the any dictionary that has the same key
+					string val := model.getString("value");
+					dictionary<any,any> data := dictionary<any,any>.parse(val);
+					send HTTPResponse(mc.requestId, 200, data) to mc.channel;
+				} 
+				catch (Exception e) {
+					send HTTPResponse(mc.requestId, 404, new dictionary<any, any>) to mc.channel;
+				}
+			}
+		}
+		
+		// Update to an existing model
+		on all ModelCommand(method="PUT") as mc {
+			log mc.toString() at INFO;
+			try {
+				string prevState;
+				//get the database row for this model if it exists
+				if models.hasKey(mc.path) {
+					Row model := models.get(mc.path);
+					//get the data from which to read the present state
+	                                string val := model.getString("value");
+					//turn the string into a dictionary whose keys are strings
+        	                        dictionary<any,any> data := dictionary<any,any>.parse(val);
+					//look up the thing with key of state. 
+					prevState := data["state"].valueToString();
+				}
+				else {
+					prevState := "INACTIVE";
+				}
+				string newState := mc.data.getEntry("state").valueToString();
+				//update the row in the database
+				Row model := models.get(mc.path);
+				model.set("value", mc.data.valueToString());
+				model.commit();
+				integer dummy := store.persist();
+				if newState != prevState {
+					setModelState(mc.path, mc.data, newState, mc.requestId, mc.channel);
+				} 
+				else {
+					send HTTPResponse(mc.requestId, 201, mc.data) to mc.channel;
+				}
+			} catch (Exception e) {
+				log e.toStringWithStackTrace();
+				send HTTPResponse(mc.requestId, 404, {"details":e.toString()}) to mc.channel;
+			}
+		}
+		
+		// Delete a model
+		on all ModelCommand(method="DELETE") as mc {
+			log mc.toString();
+			//delete this model from the database 
+			Row r := models.get(mc.path);
+			if r.inTable() {
+				string val := r.getString("value");
+				dictionary<any,any> data := dictionary<any,any>.parse(val);
+				setModelState(mc.path, data, "INACTIVE", "", "");
+				r.remove();
+				r.commit();
+				//doesn't need commit but does need persist
+				integer dummy := store.persist();
+			}
+			send HTTPResponse(mc.requestId, 200, new dictionary<any, any>) to mc.channel;
+		}
+	}
+
+	action buildParams(any obj) returns sequence<string> {
+		sequence<string> params := [];
+		string prop;
+		// simple string properties:
+		for prop in ["name", "id", "mode"] {
+			params.append(obj.getEntry(prop).valueToString());
+		}
+		// JSON object properties:
+		for prop in ["modeProperties", "builderModel"] {
+			params.append(JSONPlugin.toJSON(obj.getEntry(prop)));
+		}
+		return params;
+	}
+
+
+	action instanceUpdated(integer scenarioInstanceId, sequence<string> outputFieldValues, any src) returns dictionary<any, any> {
+		log "Processing "+outputFieldValues.toString()+" for "+scenarioInstanceId.toString() +" from "+ src.valueToString() at DEBUG;
+		if scenarioInstances.hasKey(scenarioInstanceId) {
+			string id := scenarioInstances[scenarioInstanceId];
+			Row model := models.get(id);
+			any obj := dictionary<any, any>.parse(model.getString("value"));
+			obj.setEntry("runtimeError", outputFieldValues[0]);
+			obj.setEntry("runtimeErrorLocalized", JSONPlugin.fromJSON(outputFieldValues[1]));
+			if outputFieldValues[0] != "" { // runtime error - set back to inactive state:
+				obj.setEntry("state", "INACTIVE");
+				// delete a failed instance (assume this works):
+				send Delete(SCENARIO_ID, integer.getUnique(), scenarioInstanceId) to "";
+				scenarioInstances.remove(scenarioInstanceId);
+				activeModels.remove(id);
+				model.set("value", obj.valueToString());
+				model.commit();
+				integer dummy := store.persist();
+			}
+			return <dictionary<any, any> > obj;
+		} else {
+			log "Ignoring "+src.valueToString() at DEBUG;
+		}
+		return new dictionary<any, any>;
+	}
+}
+

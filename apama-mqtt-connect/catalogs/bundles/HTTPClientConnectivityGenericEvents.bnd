@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="HTTP Client Generic Events" type="monitorscript"  singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2018-02-02</date>
+		<author>Software AG</author>
+		<comments/>
+	</version>
+	<description>
+		Predefined generic events for the HTTP client connectivity plug-in
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="HTTPClientEvents.mon"/>
+		</fileset>
+	</monitors>
+</bundle>

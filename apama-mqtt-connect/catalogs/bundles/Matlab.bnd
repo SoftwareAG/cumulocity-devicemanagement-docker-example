@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><bundle name="Matlab" display-name="MATLAB" type="monitorscript" singleton="true">
+    <version>
+        <id>5.3</id>
+        <date>2014-10-29</date>
+        <author>Software AG</author>
+        <comments/>
+        <!--
+			Copyright (c) 2013-2014 Software AG, Darmstadt, Germany and/or Software AG USA Inc., Reston, VA, USA, and/or its subsidiaries and/or its affiliates and/or their licensors.
+			Use, reproduction, transfer, publication or disclosure is prohibited except as specifically provided for in your License Agreement with Software AG Progress Software Corporation and/or its subsidiaries and affiliates. All rights reserved.
+			-->
+    </version>
+    <description>A plug-in for connecting to and using the MATLAB engine</description>
+    <monitors>
+        <fileset dir="${APAMA_HOME}/monitors/matlab">
+            <include name="MatlabEvents.mon"/>
+            <include name="MatlabService.mon"/>
+        </fileset>
+    </monitors>
+	<block-catalogs>
+        <directory location="${APAMA_HOME}/catalogs/blocks/Matlab"/>
+    </block-catalogs>
+</bundle>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="Any Extractor" type="monitorscript" singleton="true" display-name="Any Extractor">
+	<version>
+		<id>1.0</id>
+		<date>2018-02-05</date>
+		<author>Software AG</author>
+		<comments/>
+	</version>
+	<description>
+		Support for extracting values from the any type
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="AnyExtractor.mon"/>
+		</fileset>
+	</monitors>
+	<dependencies>
+	</dependencies>
+</bundle>

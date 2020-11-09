@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="EDA" type="monitorscript" singleton="true" display-name="EDA">
+	<version>
+		<id>1.0</id>
+		<date>2014-01-01</date>
+		<author>Software AG</author>
+		<comments/>
+	</version>
+	<description>
+		Support for Apama-EDA integration
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="EDAUtils.mon"/>
+		</fileset>
+	</monitors>
+	<dependencies>
+	</dependencies>
+</bundle>

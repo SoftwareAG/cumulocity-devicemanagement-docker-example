@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="Utilities for Cumulocity 10.5+" group-name="Cumulocity IoT" type="monitorscript"  singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2018-12-04</date>
+		<author>Software AG</author>
+		<comments>Utilities useful for EPL code interacting with Cumulocity events</comments>
+	</version>
+	<description>
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors/cumulocity/10.5">
+			<include name="Cumulocity_Utils.mon"/>
+			<include name="Cumulocity_RequestInterface.mon"/>
+		</fileset>
+	</monitors>
+	<events/>
+	<dependencies>
+		<dependency bundle-filename="Cumulocity Event Definitions 10.5.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+		<dependency bundle-filename="TimeFormat.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+		<dependency bundle-filename="ConnectivityPlugins-Common.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+		<dependency bundle-filename="Management.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+		<dependency bundle-filename="AnyExtractor.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+		<dependency bundle-filename="HTTPClientConnectivityGenericEvents.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+	</dependencies>
+</bundle>

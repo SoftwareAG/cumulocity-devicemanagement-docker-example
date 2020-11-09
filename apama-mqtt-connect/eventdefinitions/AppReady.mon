@@ -1,0 +1,8 @@
+
+/** Control event sent into the correlator (typically from the AppReady.evt file) after all 
+	EPL injections, once the application is ready to process messages. 
+*/
+event AppReady {
+			
+	
+}

@@ -1,0 +1,84 @@
+using com.apama.cumulocity.Measurement;
+using com.apama.cumulocity.MeasurementValue;
+
+using com.apama.correlator.timeformat.TimeFormat;
+/**
+* This is a container for storing the measurement statistics.
+*/
+event Statistics {
+	string source; // source field copied from the original measurement
+	float average; // calculated statistic - average
+	float stddev; // calculated statistic - standard deviation
+	float min; // calculated statistic - min value
+	float max; // calculated statistic - max value
+	float last; // copy of the most recent measurement fragment series value
+	float time; // time copied from the most recent measurement
+	float lastPublishedTime; // time at which this statistic was last published
+							// to Cumulocity IoT
+}
+
+
+/** This monitor is responsible for ...  */
+monitor MyNewAnalyticsModel {
+	
+	sequence<string> cache := [];
+	
+	action onload() {
+		log "Loaded monitor MyNewAnalyticsModel" at INFO;
+	
+		monitor.subscribe("c8y_ThinEdge");
+		on all Measurement() as m{
+			if m.measurements.hasKey("raw"){
+				string key;
+				for key in m.measurements["raw"].keys(){
+					if cache.indexOf(key) < 0{
+						cache.append(key);
+						calculateAverage(m.type,"raw",key);
+					}
+				}
+			}
+		}
+	}
+	
+	action calculateAverage(string mType, string mFragment, string mSeries){
+		
+		from m in all Measurement(type=mType)
+		  partition by m.source retain 50 every 50
+		  where m.measurements.hasKey(mFragment) and
+		          m.measurements[mFragment].hasKey(mSeries)
+		  group by m.source
+		  select Statistics(m.source,
+		                    com.apama.aggregates.avg(m.measurements[mFragment][mSeries].value),
+		                    com.apama.aggregates.stddev(m.measurements[mFragment][mSeries].value),
+		                    com.apama.aggregates.min(m.measurements[mFragment][mSeries].value),
+		                    com.apama.aggregates.max(m.measurements[mFragment][mSeries].value),
+		                    com.apama.aggregates.last(m.measurements[mFragment][mSeries].value),
+		                    com.apama.aggregates.last(m.time),
+		                    currentTime) as stats
+		{
+//			log "\n--- Stats: " + stats.toString() at INFO;
+			sendC8yAggregateMeasurement(mSeries,"avg",stats.average);
+			sendC8yAggregateMeasurement(mSeries,"stddev",stats.stddev);
+			sendC8yAggregateMeasurement(mSeries,"min",stats.min);
+			sendC8yAggregateMeasurement(mSeries,"max",stats.max);
+//			if not stats.average.isNaN() and not stats.stddev.isNaN()
+//				and not stats.min.isNaN() and not stats.max.isNaN() {
+//				route stats;
+//			}
+		}
+	}
+	
+	action sendC8yAggregateMeasurement(string sourceTopic, string function, float value){
+		log "\n--- Send c8y_ThinEdge aggregate measurement..." at INFO;
+		
+		c8y_AggMeasurement test := new c8y_AggMeasurement;
+	    
+	    test.type := "c8y_ThinEdge";
+	    test.time := TimeFormat.formatWithTimeZone(currentTime,"YYYY-MM-dd'T'HH:mm:ss.SSSZ","Europe/Berlin");
+	    test.aggregated := {sourceTopic + "/" + function : MeasurementValue(value,"",new dictionary<string,any>)
+							};
+	    
+		print test.toString();
+		send test to "mqtt:aggregated/"+sourceTopic+"/"+function;
+	}
+}

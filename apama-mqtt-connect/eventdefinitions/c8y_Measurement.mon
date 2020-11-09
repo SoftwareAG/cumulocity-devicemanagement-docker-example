@@ -1,0 +1,15 @@
+event c8y_source{
+	string id;
+}
+event c8y_AggMeasurement{
+	string type;
+	string time; //YYYY-MM-ddThh:mm:ss.SSSZ
+	c8y_source source;
+	dictionary<string,any> aggregated;
+}
+event c8y_RawMeasurement{
+	string type;
+	string time; //YYYY-MM-ddThh:mm:ss.SSSZ
+	c8y_source source;
+	dictionary<string,any> raw;
+}

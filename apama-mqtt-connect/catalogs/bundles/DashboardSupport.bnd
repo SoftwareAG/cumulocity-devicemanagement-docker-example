@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="Dashboard Support" type="monitorscript" singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2010-05-03</date>
+		<author>Software AG</author>
+		<comments>Required for notification of Dashboard client connect and disconnect. </comments>
+	</version>
+	<description>
+		Enables notification events for dashboard client connect and disconnect
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="DashboardSupport.mon"/>
+		</fileset>
+	</monitors>
+</bundle>
+

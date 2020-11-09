@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="Correlator Management" type="monitorscript" singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2011-09-03</date>
+		<author>Software AG</author>
+		<comments>
+			Support for accessing the management interface of the correlator from within EPL
+		</comments>
+	</version>
+	<description>
+		Support for accessing the Management interface of the correlator from within EPL
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="ManagementImpl.mon"/>
+			<include name="Management.mon"/>
+		</fileset>
+	</monitors>
+</bundle>
+

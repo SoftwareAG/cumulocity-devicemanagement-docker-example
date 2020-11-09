@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="The MemoryStore" type="monitorscript"  singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2009-17-04</date>
+		<author>Software AG</author>
+		<comments/>
+	</version>
+	<description>
+		Required by all applications using the MemoryStore
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors/data_storage">
+			<include name="MemoryStore.mon"/>
+			<include name="MemoryStoreScenarioImpl.mon"/>
+		</fileset>
+	</monitors>
+	<dependencies>
+		<dependency bundle-filename="ScenarioService.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+	</dependencies>	
+</bundle>
+

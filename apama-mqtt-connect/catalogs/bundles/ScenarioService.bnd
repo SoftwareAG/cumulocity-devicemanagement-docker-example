@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="Scenario Service" type="monitorscript"  singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2008-23-04</date>
+		<author>Software AG</author>
+		<comments>Required for Apama Scenario-based applications, built using Event Modeler. </comments>
+	</version>
+	<description>
+		Required by all scenario-based applications
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="ScenarioService.mon"/>
+		</fileset>
+		<fileset dir="${APAMA_HOME}/monitors/scenario_support">
+			<include name="ScenarioDeleterSupport.mon"/>
+		</fileset>
+	</monitors>
+	<events/>
+	<dependencies/>
+</bundle>
+

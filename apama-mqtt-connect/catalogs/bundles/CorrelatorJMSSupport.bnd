@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="Correlator-Integrated JMS Application Support" type="monitorscript" singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2017-27-06</date>
+		<author>Software AG</author>
+		<comments/>
+	</version>
+	<description>
+		Support for interacting with Correlator-Integrated JMS from EPL
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="CorrelatorJMSEvents.mon"/>
+			<include name="CorrelatorJMSStatusManager.mon"/>
+		</fileset>
+	</monitors>
+	<dependencies>
+		<dependency bundle-filename="StatusSupport.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+	</dependencies>
+</bundle>

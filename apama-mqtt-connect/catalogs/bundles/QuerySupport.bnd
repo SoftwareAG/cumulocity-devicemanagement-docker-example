@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundle name="Query support" display-name="Query Support" type="monitorscript"  singleton="true">
+	<version>
+		<id>1.0</id>
+		<date>2013-21-06</date>
+		<author>Software AG</author>
+		<comments/>
+	</version>
+	<description>
+		Required by all applications using Apama queries
+	</description>
+	<monitors>
+		<fileset dir="${APAMA_HOME}/monitors/query_support">
+			<include name="QueryServices.cdp"/>
+		</fileset>
+		<fileset dir="${APAMA_HOME}/monitors">
+			<include name="EventScheduler.mon"/>
+		</fileset>
+	</monitors>
+	<events>
+		<file name="${APAMA_HOME}/monitors/query_support/AllQueriesInjected.evt"/>
+	</events>	
+	<dependencies>
+		<dependency bundle-filename="MemoryStore.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+		<dependency bundle-filename="TimeFormat.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+		<dependency bundle-filename="Management.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+		<dependency bundle-filename="CorrelatorJMSSupport.bnd" catalog="${APAMA_HOME}/catalogs/bundles"/>
+	</dependencies>	
+</bundle>
