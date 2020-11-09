@@ -127,3 +127,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+./apama-mqtt-connect/logs/*
+./apama-mqtt-connect/dashboards/*
+*.pyc
+*.xml
+*.log
+*__pychache__*
+*_log.*
+*.settings/*
+*.key
+
