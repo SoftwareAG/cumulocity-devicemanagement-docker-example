@@ -67,21 +67,14 @@ def operationClassification(operation, operationID):
             API.operations.setOperationMode(operationID, 'EXECUTING')
             if operation['c8y_Docker']['command'] == 'create':
                 process = subprocess.Popen(["docker","run","-d","--name",str(operation['c8y_Docker']['options']['name']),"-p",str(operation['c8y_Docker']['options']['ports']),str(operation['c8y_Docker']['options']['image'])],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                #cmd = "docker run -d " + "--name " + str(operation['c8y_Docker']['options']['name']) + " " + str(operation['c8y_Docker']['options']['image'])
             elif operation['c8y_Docker']['command'] == 'delete':
-                process = subprocess.Popen(["docker","stop",str(operation['c8y_Docker']['name'])],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                process.wait()
                 process = subprocess.Popen(["docker","rm",str(operation['c8y_Docker']['name'])],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                #cmd = "docker stop " + str(operation['c8y_Docker']['name']) + "&& docker rm " + str(operation['c8y_Docker']['name'])
             elif operation['c8y_Docker']['command'] == 'restart':
                 process = subprocess.Popen(["docker","restart",str(operation['c8y_Docker']['name'])],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                #cmd = "docker " + str(operation['c8y_Docker']['command']) + " " + str(operation['c8y_Docker']['name'])
             elif operation['c8y_Docker']['command'] == 'stop':
                 process = subprocess.Popen(["docker","stop",str(operation['c8y_Docker']['name'])],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                #cmd = "docker " + str(operation['c8y_Docker']['command']) + " " + str(operation['c8y_Docker']['name'])
             elif operation['c8y_Docker']['command'] == 'start':
                 process = subprocess.Popen(["docker","start",str(operation['c8y_Docker']['name'])],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                #cmd = "docker " + str(operation['c8y_Docker']['command']) + " " + str(operation['c8y_Docker']['name'])
             process.wait()
             if process.returncode == 0:
                 API.operations.setOperationMode(operationID, 'SUCCESSFUL')
