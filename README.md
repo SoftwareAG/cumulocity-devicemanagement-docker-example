@@ -1,9 +1,6 @@
 # ThinEdge
 # Cumulocity Example for a Thin Edge based on Docker
 
-
-![TAG](pics/bild.png)
-
 Cumulocity is an IoT platform that enables rapid connections of many, many different devices and applications. It allows you to monitor and respond to IoT data in real time and to spin up this capability in minutes. More information on Cumulocity IoT and how to start a free trial can be found [here](https://www.softwareag.cloud/site/product/cumulocity-iot.html#/).
 
 Cumulocity IoT enables companies to to quickly and easily implement smart IoT solutions.
@@ -160,8 +157,8 @@ Basically theses tasks are handled in different modules:
 2. Basic RestAPI capabilities -> (API)
 3. Capability to get operations from the platform -> (deviceControl)
 4. Updating monitor files for streaming analytics -> (streamingAnalytics)
-5. Listening on measurements on MQTT on dedicated topics and creating measurements -> (streamingAnalytics/listener)
-6. Updating the current status of the docker container stats -> ()
+5. Utility modules such as reading of the monitor or settnig files and inter threadCommunication for multithreading -> (utils)
+6. Updating the current status of the docker container stats and device stats -> (dockerWatcher/sendDockerStats and deviceStatus/sendDeviceStats)
 
 Debugger is set to Info in every module, this makes debugging a lot easier. Change if you want.
 
@@ -189,13 +186,50 @@ After the registration process it is checked whether an managed object with part
 
 #### streamingAnalytics
 
-The streamingAnalytics module has two modules.
+The streamingAnalytics module has three modules. It consists of:
+
+1. ModelSync -> Takes responsibility to sync models from the Thin Edge to the platform such that platform has the current status.
+2. sendModelStats -> Communicates which models are active on the Thin Edge side.
+3. modelExchange -> Is triggered by an operations in order to remove, move, write and load models on the Thin Edge side into the mounted directory of apama and injects the content into the correlator.
 
 #### utils
 
+Utils contains of many functinonalities that are required during the runtime of the agent such as reading out configuration files of the device or enabling the communication between threads.
+
+##### Settings 
+
+Reads data from config and credentials files. The config.ini file lays within the config directory and must contain the following
+
+```shell
+[C8Y]
+tenantInstance = eu-latest.cumulocity.com
+
+[Device]
+id = 31011987
+
+[Registration]
+user = management/devicebootstrap
+password = Fhdt1bb1f
+tenant = management
+tenantPostFix = /devicecontrol/deviceCredentials
+
+[MQTT]
+prefix = aggregated
+prefixSignaltype = signalType
+broker = localhost
+port = 1883
+```
+
+These are informations that are required for the agent to be able to run properly. Feel free to add sections and variables.
+The credentials.key file will be stored by the agent within the registration process. In this approach it is not saved crypted.
+
+##### threadCommunications
+##### readMonFiles
+
 ####dockerWatcher
+
+The dockerWatcher contains a module that sends the docker stats from "docker stats" and "docker ps " to cumulocity. It therefore parses the content and creates an fragment "c8y_Docker" that contains metrics like memory, cpu and current status which will than be send to cumulocity. The ui uses that to visualize the current status.
 
 ####deviceStatus
 
 
-### Node-Red
