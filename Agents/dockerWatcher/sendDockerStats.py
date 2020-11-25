@@ -20,6 +20,7 @@ logger.info('Logger for sending Docker Status to Platform')
 
 
 def main():
+    try:
         logger.info('Sending new Docker stats')
         try:
             time.sleep(int(utils.settings.device()['c8y.docker.status.update']))
@@ -27,6 +28,8 @@ def main():
             logger.warning('Configurated docker update intervall not valid, using 10s instead.')
             time.sleep(10)
         API.inventory.updateManageObject(auth.get().internalID, json.dumps(getStats()))
+    except Exception as e:
+        logger.error('The following error occured: ' + str(e))
 
 def start():
     try:
@@ -37,9 +40,6 @@ def start():
     except Exception as e:
         logger.error('The following error occured: ' + str(e))
         pass
-
-def stop():
-    raise Exception
 
 def getStats():
     try:
@@ -75,4 +75,3 @@ def getStats():
         return payload
     except Exception as e:
         logger.error('The following error occured: %s'% (str(e)))
-        raise Exception

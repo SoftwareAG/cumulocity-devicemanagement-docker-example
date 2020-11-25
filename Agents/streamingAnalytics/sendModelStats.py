@@ -19,6 +19,7 @@ logger.info('Logger for sending Docker Status to Platform')
 
 
 def main():
+    try:
         logger.info('Sending new Model stats')
         try:
             time.sleep(int(utils.settings.device()['c8y.model.status.update']))
@@ -26,6 +27,8 @@ def main():
             logger.warning('Configurated model update intervall not valid, using 10s instead.')
             time.sleep(10)
         API.inventory.updateManageObject(auth.get().internalID, json.dumps(getStats()))
+    except Exception as e:
+        logger.error('The following error occured: ' + str(e))
 
 def start():
     try:
@@ -37,10 +40,8 @@ def start():
         logger.error('The following error occured: ' + str(e))
         pass
 
-def stop():
-    raise Exception
-
 def getStats():
+    payload = {}
     try:
         rawStats = subprocess.Popen(["docker", "exec", "apama", "ls", "Project_deployed/monitors"],stdout=subprocess.PIPE)
         list = rawStats.stdout.read().decode('utf-8').replace('\n','').split('.mon')
@@ -54,10 +55,9 @@ def getStats():
                     dict["name"] = value
                     dict["status"] = "active"
             a.append(dict)
-        payload = {}
         payload['c8y_ThinEdge_Model'] = a
         logger.debug('The following model stats where found: %s'% (str(payload)))
         return payload
     except Exception as e:
         logger.error('The following error occured: %s'% (str(e)))
-        raise Exception
+        return payload

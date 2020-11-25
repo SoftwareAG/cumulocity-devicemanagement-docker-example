@@ -1,0 +1,28 @@
+{
+    "name": "c8y_ThinEdge",
+    "type": "c8y_SmartRest2Template",
+    "com_cumulocity_model_smartrest_csv_CsvSmartRestTemplate": {
+        "requestTemplates": [],
+        "responseTemplates": [
+            {
+                "msgId": "598",
+                "condition": "c8y_Docker",
+                "base": "",
+                "name": "Docker",
+                "pattern": [
+                    "c8y_Docker.command"
+                ]
+            },
+            {
+                "msgId": "599",
+                "condition": "c8y_ThinEdge_Model",
+                "base": "",
+                "name": "StreamingModel",
+                "pattern": [
+                    "c8y_ThinEdge_Model.name"
+                ]
+            }
+        ]
+    },
+    "__externalId": "c8y_ThinEdge"
+}

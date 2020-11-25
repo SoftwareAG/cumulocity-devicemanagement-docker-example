@@ -27,3 +27,10 @@ services:
     networks:
       - default
     restart: always
+  simulator:
+    build: ./simulator
+    hostname: simulator
+    container_name: simulator
+    restart: always
+    expose:
+       - "1883"

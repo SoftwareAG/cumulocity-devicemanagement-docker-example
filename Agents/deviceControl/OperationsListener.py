@@ -10,50 +10,44 @@ import json
 import API.measurement
 import API.authentication as auth
 import API.identity
+import deviceControl.operationsListener
+import API.operations
 
 logger = logging.getLogger('Operation Listener')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger.info('Logger on MQTT for DeviceControl was initialised')
 
-def event(topic, payload):
-    try:
-        message = json.loads(payload)
-        if 'source' in str(message):
-            message['source']['id'] = str(auth.get().internalID)
-            logger.info('The following topic arrived %s', payload)
-            API.measurement.createMeasurement(json.dumps(message))
-        else:
-            raise ValueError
-    except ValueError as e:
-        return logger.error('Not valid json or valid structure')
-
-
 def on_message_msgs(mosq, obj, msg):
-    #print("Withing Callback")
     # This callback will only be called for messages with topics that matchs the assigned topics
     logger.debug('Callback function was initiated')
-    logger.info('The following topic triggered a callback function: %s', msg.topic)
     logger.info('The following payload arrived: %s', msg.payload)
     logger.debug('Object with Event-Class will be created')
-    threadEvent = threading.Thread(target=event, kwargs=dict(topic=msg.topic,payload=msg.payload), daemon=True)
-    threadEvent.start()
+    triggerPendingOPerations()
 
+def triggerPendingOPerations():
+    try:
+        threadEvent = threading.Thread(target=API.operations.getPendingOperations, kwargs=dict(
+            internalID=str(auth.get().internalID)), daemon=True)
+        threadEvent.start()
+    except Exception as e:
+        logger.error('The following error occured: ' + str(e))
 
 def main():
     try:
         logger.debug('Setting prefix within MQTT broker for machine from config file')
-        mqttSettings = utils.settings.mqtt()
         logger.debug('Initialising MQTT client with loaded credentials for listener')
-        client = mqtt.Client(str(utils.settings.basic['deviceID']))
+        logger.info(utils.settings.basics()['deviceID'])
+        client = mqtt.Client(client_id=utils.settings.basics()['deviceID'])
         logger.info('MQTT client with loaded credentials was initialised')
-        client.username_pw_set(username=auth.get().MqttUser,password=auth.get().MqttPwd)
-        operationsTopic = 's/ds'
+        client.username_pw_set(
+            username=auth.get().MqttUser, password=auth.get().MqttPwd)
         logger.info('Listening for callback on s/ds')
-        client.message_callback_add(str(operationsTopic), on_message_msgs)
+        client.message_callback_add('s/ds', on_message_msgs)
+        client.message_callback_add('s/dc/c8y_ThinEdge', on_message_msgs)
         logger.info('Connecting to MQTT Broker')
-        client.tls_set()
         client.connect(auth.get().tenant, 1883, 60)
-        client.subscribe("#", 0)
+        topics = [("s/ds", 0), ("s/dc/c8y_ThinEdge", 0)]
+        client.subscribe(topics)
         logger.info('Start Loop forever and listening')
         client.loop_forever()
     except Exception as e:
@@ -65,7 +59,11 @@ def main():
 
 def start():
     try:
+        logger.info('Initially starting triggering of getting all pending operations')
+        triggerPendingOPerations()
         while True:
+            logger.debug(
+                'Starting main loop')
             main()
             logger.error('Main loop left')
             time.sleep(10)

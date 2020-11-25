@@ -6,10 +6,6 @@ import API.binary
 import os
 from datetime import datetime, date, time, timedelta
 import paho.mqtt.client as paho
-import utils.mqtt
-
-
-
 
 
 class NewModel(object):
@@ -77,8 +73,10 @@ class NewModel(object):
             self.json_data = json.loads(self.response.text)
             return self.json_data
         else:
-            self.logger.error('Raising exception')
-            raise Exception
+            self.logger.warning('Response from request: ' + str(self.response.text))
+            self.logger.warning('Got response with status_code: ' +
+                           str(self.response.status_code))
+            return {}
 
     def parseContent(self, content):
         self.content = content
@@ -91,10 +89,6 @@ class NewModel(object):
         elif self.type == 'ONNX':
             self.fileContent = self.content
         self.logger.debug(self.fileContent)
-
-    def publishFileExchange(self):
-        self.logger.info("Publishing the info about a new model on: " + str(self.topic))
-        utils.mqtt.mqttSend(str(self.topic), str(self.name)+ str(self.suffix))
 
     def injectContentApamaRest(self):
         self.logger.info('Injecting content into Apama Standalone via Rest')
@@ -116,6 +110,9 @@ class NewModel(object):
         os.system(cmd)
 
     def main(self):
-        self.parseContent(self.getModel())
-        self.writeFile()
-        self.injectContentApamaCmd()
+        try:
+            self.parseContent(self.getModel())
+            self.writeFile()
+            self.injectContentApamaCmd()
+        except:
+            pass

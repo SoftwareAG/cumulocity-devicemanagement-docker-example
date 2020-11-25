@@ -23,42 +23,55 @@ logger.info('Logger for sending Docker Status to Platform')
 
 def getMemoryStats():
     payload = {}
-    payload['source'] = {"id": str(auth.get().internalID)}
-    payload['type'] = "c8y_ThinEdge_Device_Stats"
-    payload['time'] = datetime.datetime.strptime(str(datetime.datetime.now()), '%Y-%m-%d %H:%M:%S.%f').isoformat() +"+00:00"
-    memory = {}
-    memory['free'] = {"value": psutil.virtual_memory().free}
-    memory['used'] = {"value": psutil.virtual_memory().used}
-    memory['total'] = {"value": psutil.virtual_memory().total}
-    memory['percent'] = {"value": psutil.virtual_memory().percent}
-    payload['Virtual Memory'] = memory
-    return payload
+    try:
+        payload['source'] = {"id": str(auth.get().internalID)}
+        payload['type'] = "c8y_ThinEdge_Device_Stats"
+        payload['time'] = datetime.datetime.strptime(str(datetime.datetime.now()), '%Y-%m-%d %H:%M:%S.%f').isoformat() +"+00:00"
+        memory = {}
+        memory['free'] = {"value": psutil.virtual_memory().free}
+        memory['used'] = {"value": psutil.virtual_memory().used}
+        memory['total'] = {"value": psutil.virtual_memory().total}
+        memory['percent'] = {"value": psutil.virtual_memory().percent}
+        payload['Virtual Memory'] = memory
+        return payload
+    except Exception as e:
+        logger.error('The following error occured: %s' % (str(e)))
+        return payload
 
 def getCPUStats():
     payload = {}
-    payload['source'] = {"id": str(auth.get().internalID)}
-    payload['type'] = "c8y_ThinEdge_Device_Stats"
-    payload['time'] = datetime.datetime.strptime(str(datetime.datetime.now()), '%Y-%m-%d %H:%M:%S.%f').isoformat() +"+00:00"
-    cpu = {}
-    cpu['load'] = {'value': psutil.cpu_percent(0)}
-    payload['CPU'] = cpu
-    return payload
+    try:
+        payload['source'] = {"id": str(auth.get().internalID)}
+        payload['type'] = "c8y_ThinEdge_Device_Stats"
+        payload['time'] = datetime.datetime.strptime(str(datetime.datetime.now()), '%Y-%m-%d %H:%M:%S.%f').isoformat() +"+00:00"
+        cpu = {}
+        cpu['load'] = {'value': psutil.cpu_percent(0)}
+        payload['CPU'] = cpu
+        return payload
+    except Exception as e:
+        logger.error('The following error occured: %s' % (str(e)))
+        return payload
 
 def getDiskStats():
     payload = {}
-    payload['source'] = {"id": str(auth.get().internalID)}
-    payload['type'] = "c8y_ThinEdge_Device_Stats"
-    payload['time'] = datetime.datetime.strptime(str(datetime.datetime.now()), '%Y-%m-%d %H:%M:%S.%f').isoformat() +"+00:00"
-    disk = {}
-    disk['total'] = {'value': psutil.disk_usage('/').total}
-    disk['used'] = {'value': psutil.disk_usage('/').used}
-    disk['free'] = {'value': psutil.disk_usage('/').free}
-    disk['percent'] = {'value': psutil.disk_usage('/').percent}
-    payload['Disk'] = disk
-    return payload
+    try:
+        payload['source'] = {"id": str(auth.get().internalID)}
+        payload['type'] = "c8y_ThinEdge_Device_Stats"
+        payload['time'] = datetime.datetime.strptime(str(datetime.datetime.now()), '%Y-%m-%d %H:%M:%S.%f').isoformat() +"+00:00"
+        disk = {}
+        disk['total'] = {'value': psutil.disk_usage('/').total}
+        disk['used'] = {'value': psutil.disk_usage('/').used}
+        disk['free'] = {'value': psutil.disk_usage('/').free}
+        disk['percent'] = {'value': psutil.disk_usage('/').percent}
+        payload['Disk'] = disk
+        return payload
+    except Exception as e:
+        logger.error('The following error occured: %s' % (str(e)))
+        return payload
 
 
 def main():
+    try:
         logger.info('Sending new device stats')
         API.measurement.createMeasurement(json.dumps(getMemoryStats()))
         API.measurement.createMeasurement(json.dumps(getCPUStats()))
@@ -68,6 +81,9 @@ def main():
         except:
             logger.warning('Configurated device update intervall not valid, using 10s instead.')
             time.sleep(10)
+    except Exception as e:
+        logger.error('The following error occured: %s' % (str(e)))
+        return payload
 
 def start():
     try:
@@ -78,6 +94,3 @@ def start():
     except Exception as e:
         logger.error('The following error occured: ' + str(e))
         pass
-
-def stop():
-    raise Exception

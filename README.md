@@ -39,8 +39,10 @@ Getting stated is much easier on linux than on windows. For developement we used
     c) [Software AG Zementis Server](https://hub.docker.com/_/softwareag-zementis-server)
 
    Make sure you go all the way through the checkout process.
-4. In command line enter docker login and enter credentials (you need docker.io, install via yum or apt-get)
-5. docker-compose up -d --build
+4. Currently you need an Apama License. However you can remove that part in the Dockerfile but some essential functionalities such as cdp inject won´t work with the communitiy edition.
+5. In command line enter docker login and enter credentials (you need docker.io, install via yum or apt-get)
+6. docker-compose up -d --build
+7. Run the Agent via python3 run.py in the Agent directory
 
 
 ### Start

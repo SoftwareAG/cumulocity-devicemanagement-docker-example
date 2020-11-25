@@ -3,3 +3,4 @@ paho-mqtt == 1.5.1
 jsonify == 0.5
 websocket_client == 0.57.0
 psutil == 5.7.2
+docker == 4.4.0

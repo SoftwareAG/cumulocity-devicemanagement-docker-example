@@ -10,10 +10,10 @@ logger = logging.getLogger('configuration Updater')
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 def start(operation, operationID):
-    API.operations.setOperationMode(operationID, 'EXECUTING')
-    configEvent = {}
-    configEvent['c8y_Configuration'] = operation['c8y_Configuration']
     try:
+        API.operations.setOperationMode(operationID, 'EXECUTING')
+        configEvent = {}
+        configEvent['c8y_Configuration'] = operation['c8y_Configuration']
         logger.debug('Created the following config: %s'% (str(configEvent)))
         API.inventory.updateManageObject(auth.get().internalID, json.dumps(configEvent))
     except Exception as e:

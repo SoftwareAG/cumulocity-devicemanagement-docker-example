@@ -26,17 +26,22 @@ def event(topic, payload):
             raise ValueError
     except ValueError as e:
         return logger.error('Not valid json or valid structure')
+    except Exception as e:
+        logger.error('The following error occured: ' + str(e))
 
 
 def on_message_msgs(mosq, obj, msg):
     #print("Withing Callback")
     # This callback will only be called for messages with topics that matchs the assigned topics
-    logger.debug('Callback function was initiated')
-    logger.info('The following topic triggered a callback function: %s', msg.topic)
-    logger.info('The following payload arrived: %s', msg.payload)
-    logger.debug('Object with Event-Class will be created')
-    threadEvent = threading.Thread(target=event, kwargs=dict(topic=msg.topic,payload=msg.payload), daemon=True)
-    threadEvent.start()
+    try:
+        logger.debug('Callback function was initiated')
+        logger.info('The following topic triggered a callback function: %s', msg.topic)
+        logger.info('The following payload arrived: %s', msg.payload)
+        logger.debug('Object with Event-Class will be created')
+        threadEvent = threading.Thread(target=event, kwargs=dict(topic=msg.topic,payload=msg.payload), daemon=True)
+        threadEvent.start()
+    except Exception as e:
+        logger.error('The following error occured: ' + str(e))
 
 
 def main():

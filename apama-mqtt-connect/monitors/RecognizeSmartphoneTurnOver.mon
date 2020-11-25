@@ -1,0 +1,159 @@
+using com.apama.cumulocity.Measurement;
+using com.apama.cumulocity.Alarm;
+
+//event ThresholdClear{}
+
+/** This monitor is responsible for ...  */
+monitor RecognizeSmartphoneTurnOver {
+	
+	//	Replace this value with your device id.
+	string deviceId := "2908974";
+	//  Replace this value setup for minor alarm time.
+	float warningTime := 1.0;
+	//  Replace this value setup for minor alarm time.
+	float minorTime := 10.0;
+	//	 Replace this value setup for mayor alarm time.
+	float majorTime := 20.0;
+	//	 Replace this value setup for critical alarm time.
+	float criticalTime := 30.0;
+	
+	//	Value to recognize smartphone was flipped.
+	float maxLimit := 0.8;
+	
+	// Definition of diffrent Alarm types
+	constant string ALARM_TYPE := "c8y_TurnAroundAlarm";
+	constant string WARNING := "WARNING";
+	constant string MINOR := "MINOR";
+	constant string MAJOR := "MAJOR";
+	constant string CRITICAL := "CRITICAL";
+	
+	string lastWarnAlarmId := "";
+	string lastMinorAlarmId := "";
+	string lastMajorAlarmId := "";
+	string lastCriticalAlarmId := "";
+	
+	boolean timerStarted := false;
+	
+	action onload() {
+		log "Loaded monitor RecognizeSmartphoneTurnOver" at INFO;
+		
+		monitor.subscribe(Measurement.CHANNEL);
+		monitor.subscribe(Alarm.CHANNEL);
+		
+//		Listen to accelerationZ measurements and monitors if value higher than maxLimit.
+//		If accelerationZ is higher than maxLimit, all timers with diffrent kind of alarmtypes
+//		are gonna be activated. If accelerationZ goes back to normal value range, all alarms
+//		are gonna be cleared.
+		waitForTurnOver();
+		
+//		Listen to new generated alarms and remember alarmId to update / clear them.
+		listenToLastAlarmIds();
+	}
+	
+	action listenToLastAlarmIds(){
+		
+		Alarm alarm;
+		from a in all Alarm(source = deviceId, status = "ACTIVE") 
+			partition by a.type retain 1
+		  where a.id.length() > 0
+		  select a:alarm{
+
+			if(alarm.type.matches(ALARM_TYPE + "_" + WARNING)){
+				log alarm.severity + " Alarm id: " + alarm.id at INFO;
+				lastWarnAlarmId := alarm.id;
+				
+			}else if(alarm.type.matches(ALARM_TYPE + "_" + MINOR)){
+				log alarm.severity + " Alarm id: " + alarm.id at INFO;
+				lastMinorAlarmId := alarm.id;
+				
+			}else if(alarm.type.matches(ALARM_TYPE + "_" + MAJOR)){
+				log alarm.severity + " Alarm id: " + alarm.id at INFO;
+				lastMajorAlarmId := alarm.id;
+				
+			}else if(alarm.type.matches(ALARM_TYPE + "_" + CRITICAL)){
+				log alarm.severity + " Alarm id: " + alarm.id at INFO;
+				lastCriticalAlarmId := alarm.id;
+				
+			}else {
+				log "ERROR - Unknown alarm type: " + alarm.type at ERROR;
+			}
+		}
+			
+	}
+	
+	action waitForTurnOver(){
+		listener monitorTurnOver := on all Measurement(source = deviceId, type = "c8y_Acceleration") as m {  
+			
+//			log "Received Measurement from C8Y - "+ m.measurements.getOrDefault("c8y_Acceleration").getOrDefault("accelerationZ").value.toString();
+			float accelerationZ := m.measurements.getOrDefault("c8y_Acceleration").getOrDefault("accelerationZ").value;
+			if( accelerationZ > maxLimit){
+				if not(timerStarted){
+					
+//					log "Smartphone was flipped..." at INFO;
+					timerStarted := true;
+					startTimers();
+				}
+			}
+				
+			if( accelerationZ < maxLimit){
+				if(timerStarted){
+					log "Smartphone was flipped back." at INFO;
+//					route ThresholdClear();
+					clearAlarms();
+					timerStarted := false;
+				}
+			}
+		}
+	}
+
+	
+	action startTimers(){
+		
+		startTimer(warningTime,WARNING);
+		startTimer(minorTime, MINOR);
+		startTimer(majorTime, MAJOR);
+		startTimer(criticalTime, CRITICAL);
+		
+	}
+	
+	action startTimer(float time, string severity){
+		
+		on wait(time) and not Alarm(source = deviceId, status = "CLEARED"){
+			
+			log severity + " Alarm: Time is over..." at INFO;
+			sendNewAlarm(time.toString(),severity);
+		}
+	}
+	
+	action clearAlarms(){
+		
+		sendClearedAlarm(lastWarnAlarmId, WARNING);
+		sendClearedAlarm(lastMinorAlarmId, MINOR);
+		sendClearedAlarm(lastMajorAlarmId, MAJOR);
+		sendClearedAlarm(lastCriticalAlarmId, CRITICAL);
+
+	}
+	
+	action sendClearedAlarm(string id, string severity){
+		
+		send Alarm(id,
+		           ALARM_TYPE + "_" + severity,
+		           deviceId,
+		           currentTime,
+		           "Clearing alarm for new smartphone flip.",
+		           "CLEARED",
+		           severity,
+		           1, new dictionary<string, any> ) to Alarm.CHANNEL;
+	}
+	action sendNewAlarm(string timer, string severity){
+		
+		send Alarm("",
+		           ALARM_TYPE + "_" + severity,
+		           deviceId,
+		           currentTime,
+		           "Your smartphone has been lying upside down for more than " + timer  +" second(s).",
+		           "ACTIVE",
+		           severity,
+		           1, new dictionary<string, any> ) to Alarm.CHANNEL;
+	}
+}

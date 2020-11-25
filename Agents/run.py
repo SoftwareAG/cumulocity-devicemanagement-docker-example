@@ -6,17 +6,18 @@ import requests
 import streamingAnalytics.listener
 import deviceRegistration.registrationProcess
 import API.authentication as auth
-import deviceControl.operationsWatcher
 import API.identity
 import time
 import threading
-import utils
+import utils.settings
 import dockerWatcher.sendDockerStats
 import streamingAnalytics.sendModelStats
 import utils.threadCommunication as communication
 import deviceStatus.sendDeviceStats
 import streamingAnalytics.modelSync
 import paho.mqtt.publish as publish
+import deviceControl.operationsListener
+import deviceControl.smartRest
 
 
 
@@ -44,14 +45,13 @@ def start():
         logger.info('No credentials found, starting registration')
         deviceRegistration.registrationProcess.start()
     logger.info('Credentials available')
-    if not checkUsabilityCredentials():
-        sys.exit(1)
     logger.info('Starting checking of existing device')
     if API.identity.getInternalID(utils.settings.basics()['deviceID']) is False:
         logger.info('No device found in c8y, starting edge device creation.')
         deviceRegistration.newDeviceRegistration.createEdgeDevice(utils.settings.basics()['deviceID'])
     auth.get().internalID = API.identity.getInternalID(utils.settings.basics()['deviceID'])
     utils.settings.device()
+    deviceControl.smartRest.checkSmartRestTemplateExists()
     streamingAnalytics.modelSync.models()
     logger.info('Sending internalID on MQTT for APAMA standalone')
     try:
@@ -63,7 +63,7 @@ def start():
 
 def operation():
     logger.info('Starting operationsWatcher')
-    threadOperatiosnWatcher = threading.Thread(target=deviceControl.operationsWatcher.start, daemon=True)
+    threadOperatiosnWatcher = threading.Thread(target=deviceControl.operationsListener.start, daemon=True)
     threadOperatiosnWatcher.start()
     return threadOperatiosnWatcher
 
@@ -97,21 +97,21 @@ if __name__== "__main__":
         start()
         statusDevice = deviceStatsStatus()
         statusOperation = operation()
-        statusListener = listener()
-        statusDocker = dockerStatus()
-        statusModel = modelStatus()
+        #statusListener = listener()
+        #statusDocker = dockerStatus()
+        #statusModel = modelStatus()
         while True:
             time.sleep(1)
             print("Heartbeat")
-            if statusListener.is_alive() is False:
+            """"if statusListener.is_alive() is False:
                 logger.error('Listener on Measurements not alive, restarting')
                 time.sleep(5)
-                statusListerner = listener()
-            elif statusOperation.is_alive() is False:
+                statusListerner = listener()"""
+            if statusOperation.is_alive() is False:
                 logger.error('Listener on operations not alive, restarting')
                 time.sleep(5)
                 statusOperation = operation()
-            elif statusDocker.is_alive() is False:
+            """elif statusDocker.is_alive() is False:
                 logger.error('Status on Docker not alive, restarting')
                 time.sleep(5)
                 statusDocker = dockerStatus()
@@ -122,9 +122,9 @@ if __name__== "__main__":
             elif statusDevice.is_alive() is False:
                 logger.error('Status on device update not alive, restarting')
                 time.sleep(5)
-                statusDevice = deviceStatsStatus()
+                statusDevice = deviceStatsStatus()"""
     except KeyboardInterrupt:
         sys.exit(1)
     except Exception as e:
         logger.error('The following error occured: ' + str(e))
-        raise
+        pass
