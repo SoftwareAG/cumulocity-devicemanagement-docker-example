@@ -97,21 +97,21 @@ if __name__== "__main__":
         start()
         statusDevice = deviceStatsStatus()
         statusOperation = operation()
-        #statusListener = listener()
-        #statusDocker = dockerStatus()
-        #statusModel = modelStatus()
+        statusListener = listener()
+        statusDocker = dockerStatus()
+        statusModel = modelStatus()
         while True:
             time.sleep(1)
             print("Heartbeat")
-            """"if statusListener.is_alive() is False:
+            if statusListener.is_alive() is False:
                 logger.error('Listener on Measurements not alive, restarting')
                 time.sleep(5)
-                statusListerner = listener()"""
+                statusListerner = listener()
             if statusOperation.is_alive() is False:
                 logger.error('Listener on operations not alive, restarting')
                 time.sleep(5)
                 statusOperation = operation()
-            """elif statusDocker.is_alive() is False:
+            elif statusDocker.is_alive() is False:
                 logger.error('Status on Docker not alive, restarting')
                 time.sleep(5)
                 statusDocker = dockerStatus()
@@ -122,7 +122,7 @@ if __name__== "__main__":
             elif statusDevice.is_alive() is False:
                 logger.error('Status on device update not alive, restarting')
                 time.sleep(5)
-                statusDevice = deviceStatsStatus()"""
+                statusDevice = deviceStatsStatus()
     except KeyboardInterrupt:
         sys.exit(1)
     except Exception as e:
