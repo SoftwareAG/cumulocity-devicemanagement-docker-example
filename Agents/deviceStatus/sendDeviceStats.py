@@ -26,7 +26,8 @@ def getMemoryStats():
     try:
         payload['source'] = {"id": str(auth.get().internalID)}
         payload['type'] = "c8y_ThinEdge_Device_Stats"
-        payload['time'] = datetime.datetime.strptime(str(datetime.datetime.now()), '%Y-%m-%d %H:%M:%S.%f').isoformat() +"+00:00"
+        payload['time'] = datetime.datetime.strptime(
+            str(datetime.datetime.utcnow()), '%Y-%m-%d %H:%M:%S.%f').isoformat() + "Z"
         memory = {}
         memory['free'] = {"value": psutil.virtual_memory().free}
         memory['used'] = {"value": psutil.virtual_memory().used}
@@ -43,7 +44,8 @@ def getCPUStats():
     try:
         payload['source'] = {"id": str(auth.get().internalID)}
         payload['type'] = "c8y_ThinEdge_Device_Stats"
-        payload['time'] = datetime.datetime.strptime(str(datetime.datetime.now()), '%Y-%m-%d %H:%M:%S.%f').isoformat() +"+00:00"
+        payload['time'] = datetime.datetime.strptime(
+            str(datetime.datetime.utcnow()), '%Y-%m-%d %H:%M:%S.%f').isoformat() + "Z"
         cpu = {}
         cpu['load'] = {'value': psutil.cpu_percent(0)}
         payload['CPU'] = cpu
@@ -57,7 +59,8 @@ def getDiskStats():
     try:
         payload['source'] = {"id": str(auth.get().internalID)}
         payload['type'] = "c8y_ThinEdge_Device_Stats"
-        payload['time'] = datetime.datetime.strptime(str(datetime.datetime.now()), '%Y-%m-%d %H:%M:%S.%f').isoformat() +"+00:00"
+        payload['time'] = datetime.datetime.strptime(
+            str(datetime.datetime.utcnow()), '%Y-%m-%d %H:%M:%S.%f').isoformat() + "Z"
         disk = {}
         disk['total'] = {'value': psutil.disk_usage('/').total}
         disk['used'] = {'value': psutil.disk_usage('/').used}
@@ -77,13 +80,14 @@ def main():
         API.measurement.createMeasurement(json.dumps(getCPUStats()))
         API.measurement.createMeasurement(json.dumps(getDiskStats()))
         try:
+            logger.debug(
+                'Requesting sleep value from configuration of manage object')
             time.sleep(int(utils.settings.device()['c8y.device.status.update']))
         except:
             logger.warning('Configurated device update intervall not valid, using 10s instead.')
             time.sleep(10)
     except Exception as e:
         logger.error('The following error occured: %s' % (str(e)))
-        return payload
 
 def start():
     try:
