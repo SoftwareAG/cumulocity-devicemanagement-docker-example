@@ -63,8 +63,8 @@ def mqtt():
         return False
 
 def device():
+    device ={}
     try:
-        device = {}
         managedDeviceObject = API.inventory.getSpezificManagedObject(auth.get().internalID)['c8y_Configuration']['config'].replace('\n','').split(';')
         for counter, value in enumerate(managedDeviceObject):
             if len(value) > 0:
@@ -74,4 +74,4 @@ def device():
         return device
     except Exception as e:
         logger.error('The following error occured: %s'% (str(e)))
-        return False
+        return device

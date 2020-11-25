@@ -72,6 +72,3 @@ def start():
     except Exception as e:
         logger.error('The following error occured: ' + str(e))
         pass
-
-def stop():
-    print("Stopping")
