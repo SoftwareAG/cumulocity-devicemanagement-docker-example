@@ -10,7 +10,6 @@ import json
 import API.measurement
 import API.authentication as auth
 import API.identity
-import deviceControl.operationsListener
 import API.operations
 
 logger = logging.getLogger('Operation Listener')

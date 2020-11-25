@@ -16,8 +16,8 @@ import utils.threadCommunication as communication
 import deviceStatus.sendDeviceStats
 import streamingAnalytics.modelSync
 import paho.mqtt.publish as publish
-import deviceControl.operationsListener
 import deviceControl.smartRest
+import deviceControl.operationsListener
 
 
 
