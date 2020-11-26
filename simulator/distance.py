@@ -6,7 +6,7 @@ import random
 if __name__ == '__main__':
     try:
         client = paho.Client()
-        client.connect('localhost', 1883, 60)
+        client.connect('mosquitto', 1883, 60)
         while True:
             distance = random.uniform(1, 100)
             if(distance > -1):

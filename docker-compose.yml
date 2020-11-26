@@ -34,3 +34,5 @@ services:
     restart: always
     expose:
        - "1883"
+    networks:
+       - default
