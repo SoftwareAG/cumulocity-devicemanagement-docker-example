@@ -21,6 +21,15 @@
                 "pattern": [
                     "c8y_ThinEdge_Model.name"
                 ]
+            },
+            {
+                "pattern": [
+                    "c8y_RemoteAccessConnect.hostname"
+                ],
+                "msgId": "597",
+                "condition": "c8y_RemoteAccessConnect",
+                "base": "",
+                "name": "RemoteAccess"
             }
         ]
     },
