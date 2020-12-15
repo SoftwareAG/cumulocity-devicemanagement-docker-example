@@ -28,9 +28,9 @@ Getting stated is much easier on linux than on windows. For developement we used
 
 ### Prerequisites
 
-
 1. Install the web application in your cumulocity tenant [cumulocity-thinedge-web-app](https://github.com/mbay-SAG/cumulocity-thinedge-web-app)
 
+![Install web app](https://raw.githubusercontent.com/mbay-SAG/cumulocity-thinedge-web-app/master/doc/gifs/doc-upload-web-app.gif)
 
 2. Pull the repo
 
@@ -44,7 +44,6 @@ Getting stated is much easier on linux than on windows. For developement we used
     c) [Software AG Zementis Server](https://hub.docker.com/_/softwareag-zementis-server)
 
    Make sure you go all the way through the checkout process.
-
 
 ![Docker hub checkout](https://recordit.co/bN4BAtd5l7.gif)
 
@@ -68,7 +67,7 @@ As soon as the containers are running you can start registering on your tenant. 
 The ThinEdge example allows the management of docker containers via the powerful concept of operations.
 In the tab Docker the current docker containers on the host system are shown together with metrics like CPU and RAM. From that point it is possible to stop, restart or delete containers. It is also possible to create new containers together with adjustments like port mapping.
 
-![Docker Management](https://recordit.co/wbvYT7D1nV.gif)
+![Docker Management](https://recordit.co/3JrQkcRsVc.gif)
 
 ### Change Configuration
 
@@ -76,7 +75,7 @@ The configuration change functunalities are used for editing the current configu
 
 ![Monitor Update](https://recordit.co/9Eukt7VH5E.gif)
 
-### Update Model in Apama Analytics Builder
+### Update Models on ThinEdge
 
 In the analytics tab of the thinedge Managemt web application all EPL, APAMA Analytics Builder and Zementis. The slides shows which model is currently running and active on the thinedge device. With the slider an operation is generated that loads or unloads the model.
 Currently only EPL is working. The distribution and injection of APAMA Analytics Builder and Zementis models is work in progress.
@@ -119,6 +118,13 @@ There are two main modules:
 2. operationsHandler -> Handles the logic of the operations and hands them over to dedicated modules
 
 Dedicated modules in this context are e.g. the update of configuration with updating the managed object or the exchange of files on the local machine for e.g. epl files. Others can be added for later use-cases.
+For the trigger currently SmartRest is used. The SmartRest template is created by the initial start of the Agent. The layout is inside the SmartRestTemplate.json under config.
+
+![Dashboard](pics/SmartRest.png)
+
+This Template is needed for RemoteAcces, ModelManagement and Docker, since otherwise the Agents does not recognize the created operation.
+
+
 
 ### deviceRegistration
 
@@ -199,7 +205,6 @@ The device.txt contains an example of a device as it is used in here. Feel free 
 
 The dockerWatcher contains a module that sends the docker stats from "docker stats" and "docker ps " to cumulocity. It therefore parses the content and creates an fragment "c8y_Docker" that contains metrics like memory, cpu and current status which will than be send to cumulocity. The ui uses that to visualize the current status.
 
-### deviceStatus
 
 ## Docker and Container
 
@@ -208,7 +213,6 @@ The Thin Edge example here includes the following services:
 * [MQTT Broker](#Mosquitto)
 * [Apama Correlator](#Apama)
 * [Zementis](#Zementis)
-* [Node-red](#Node-Red)
 
 Those services are orchestered via a docker-compose file.
 
@@ -247,6 +251,8 @@ Documentation for the broker, clients and client library API can be found in the
 Currently the mqtt broker is not protected with user/password, this can easily be changed with a configuration.
 
 ### Apama
+
+More on Apama can be found here in the [Apam Community](http://www.apamacommunity.com/):
 
 Apama standalone is running within a container and directly listens on the MQTT via
 You can control the apama incstance with the following commands:
