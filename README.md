@@ -7,15 +7,6 @@ Cumulocity IoT enables companies to quickly and easily implement smart IoT solut
 
 ![Dashboard](pics/Dashboard.png)
 
-______________________
-
-For more information you can Ask a Question in the [TECHcommunity Forums](https://tech.forums.softwareag.com/tags/c/forum/1/Cumulocity-IoT).
-______________________
-
-These tools are provided as-is and without warranty or support. They do not constitute part of the Software AG product suite. Users are free to use, fork and modify them, subject to the license agreement. While Software AG welcomes contributions, we cannot guarantee to include every contribution in the master project.
-
-Contact us at [TECHcommunity](mailto:Communities@softwareag.com?subject=Github/SoftwareAG) if you have any questions.
-
 ## UML
 
 ![Overview](pics/UML_overview.png)
@@ -286,3 +277,11 @@ You can control the apama incstance with the following commands:
 * docker exec apama engine_inject ./Project_deployed/monitors/HelloWorld.mon
 
   Inject mon-file to running correlator.
+  
+______________________
+
+These tools are provided as-is and without warranty or support. They do not constitute part of the Software AG product suite. Users are free to use, fork and modify them, subject to the license agreement. While Software AG welcomes contributions, we cannot guarantee to include every contribution in the master project.
+
+For more information you can Ask a Question in the [TECHcommunity Forums](https://tech.forums.softwareag.com/tags/c/forum/1/Cumulocity-IoT).
+
+Contact us at [TECHcommunity](mailto:Communities@softwareag.com?subject=Github/SoftwareAG) if you have any questions.
