@@ -1,5 +1,4 @@
-# ThinEdge
-# Cumulocity Example for a Thin Edge based on Docker
+# Cumulocity Example for Device Management that handles Docker Containers and Streaming Rules on the Edge
 
 Cumulocity is an IoT platform that enables rapid connections of many, many different devices and applications. It allows you to monitor and respond to IoT data in real time and to spin up this capability in minutes. More information on Cumulocity IoT and how to start a free trial can be found [here](https://www.softwareag.cloud/site/product/cumulocity-iot.html#/).
 
